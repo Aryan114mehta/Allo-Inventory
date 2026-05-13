@@ -67,32 +67,19 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## Deploying to Vercel
-
-1. Push your repo to GitHub.
-2. Import the repo on [vercel.com](https://vercel.com).
-3. Add all env vars from `.env` in **Settings → Environment Variables**.
-4. On first deploy, run migrations from your local machine:
-   ```bash
-   npx prisma migrate deploy
-   npx prisma db seed
-   ```
-5. `vercel.json` already configures the cron job — it will activate automatically on Pro/Hobby plans.
-
----
-
 
 
 ## API Reference
 
-| Method | Path | Description |
-| `GET` | `/api/products` | List products with available stock per warehouse. Supports `?search=` and `?warehouseId=`. |
-| `GET` | `/api/warehouses` | List all warehouses. |
-| `POST` | `/api/reservations` | Reserve units. Returns 409 if insufficient stock. |
-| `GET` | `/api/reservations/:id` | Get reservation details. |
-| `POST` | `/api/reservations/:id/confirm` | Confirm (payment succeeded). Returns 410 if expired. |
-| `POST` | `/api/reservations/:id/release` | Release early (payment failed / user cancelled). |
-| `GET` | `/api/cron/cleanup` | Release all expired reservations (cron-only, requires `Authorization: Bearer <CRON_SECRET>`). |
+| Method | Path | Request Body | Description |
+|---|---|---|---|
+| `GET` | `/api/products` | - | List products with availability. Supports `?search=` and `?warehouseId=`. |
+| `GET` | `/api/warehouses` | - | List all warehouses with their inventory summary. |
+| `POST` | `/api/reservations` | `{ productId, warehouseId, quantity }` | Create a time-boxed reservation. Returns `201` on success, `409` on stock conflict. |
+| `GET` | `/api/reservations/:id` | - | Fetch reservation status and details. Returns `404` if not found. |
+| `POST` | `/api/reservations/:id/confirm` | - | Finalize a reservation (e.g., after payment). Returns `410` if expired, `409` if already finalized. |
+| `POST` | `/api/reservations/:id/release` | - | Cancel a reservation and release stock back to the warehouse. |
+| `GET` | `/api/cron/cleanup` | - | Admin endpoint to release all expired reservations. Requires `Authorization` header. |
 
 ### Idempotency (Bonus)
 
@@ -163,8 +150,8 @@ prisma/
 
 ### With More Time
 
-- Add Zod validation to all query params with proper error messages.
-- Add E2E tests (Playwright) for the full reserve → confirm / release flow and a concurrency test using `Promise.all`.
-- Add a user auth layer (NextAuth / Clerk) so reservations are scoped to accounts.
-- Replace the Cron with a BullMQ delayed job that fires exactly at `expiresAt`.
-- Add an admin dashboard showing live stock levels and reservation activity.
+- **Real-time Updates**: Implement Server-Sent Events (SSE) or WebSockets to notify the checkout page immediately when a reservation expires.
+- **E2E Testing**: Add Playwright tests to simulate high-concurrency race conditions and verify the `SELECT FOR UPDATE` locking behavior.
+- **Advanced Auth**: Integrate NextAuth.js or Clerk to associate reservations with verified user accounts.
+- **Queue-based Cleanup**: Replace the Cron sweep with BullMQ or Inngest to release stock precisely at the second of expiry rather than in batches.
+- **Admin Dashboard**: Build a protected view for warehouse managers to monitor reservation trends and stock velocity.
