@@ -73,7 +73,13 @@ export async function createReservation(
       data: { reserved: { increment: quantity } },
     });
 
-    return reservation;
+    return {
+      ...reservation,
+      product: {
+        ...reservation.product,
+        price: reservation.product.price.toString(),
+      },
+    };
   });
 }
 
@@ -97,11 +103,19 @@ export async function confirmReservation(
     throw new ReservationExpiredError();
   }
 
-  return prisma.reservation.update({
+  const updated = await prisma.reservation.update({
     where: { id },
     data: { status: "CONFIRMED" },
     include: { product: true, warehouse: true },
   });
+
+  return {
+    ...updated,
+    product: {
+      ...updated.product,
+      price: updated.product.price.toString(),
+    },
+  };
 }
 
 export async function releaseReservation(
@@ -130,7 +144,13 @@ export async function releaseReservation(
       data: { reserved: { decrement: reservation.quantity } },
     });
 
-    return updated;
+    return {
+      ...updated,
+      product: {
+        ...updated.product,
+        price: updated.product.price.toString(),
+      },
+    };
   });
 }
 
@@ -198,5 +218,12 @@ export async function getReservationById(id: string): Promise<ReservationWithDet
   });
 
   if (!reservation) throw new ReservationNotFoundError(id);
-  return reservation;
+
+  return {
+    ...reservation,
+    product: {
+      ...reservation.product,
+      price: reservation.product.price.toString(),
+    },
+  };
 }

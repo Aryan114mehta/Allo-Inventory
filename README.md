@@ -1,12 +1,7 @@
 # Allo Inventory — Reservation System
-
 A Next.js 16 (App Router) application that solves the checkout race condition using PostgreSQL row-level locking and time-boxed reservations.
 
-## Live Demo
 
-> Deploy to Vercel (see below) and paste the URL here.
-
----
 
 ## Architecture
 
@@ -22,7 +17,6 @@ UI (React + TanStack Query)
 
 ---
 
-## Running Locally
 
 ### Prerequisites
 
@@ -33,7 +27,7 @@ UI (React + TanStack Query)
 ### 1. Clone & Install
 
 ```bash
-git clone <your-repo>
+git clone <Allo-Inventory>
 cd algo
 npm install
 ```
@@ -58,10 +52,8 @@ Edit `.env` and fill in:
 ### 3. Run Migrations & Seed
 
 ```bash
-# Push schema to the database
 npx prisma migrate dev --name init
 
-# Seed with sample products and warehouses
 npx prisma db seed
 ```
 
@@ -89,27 +81,11 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## How Expiry Works
 
-### Production (Vercel Cron)
-
-`vercel.json` schedules `GET /api/cron/cleanup` every 5 minutes. The handler:
-1. Finds all `PENDING` reservations where `expiresAt < now`.
-2. Bulk-updates their status to `RELEASED` in a batched transaction.
-3. Decrements `Inventory.reserved` for each released group.
-
-The endpoint is protected by a `CRON_SECRET` bearer token — Vercel passes this automatically via `Authorization` header when it invokes the cron.
-
-### Lazy Cleanup (Belt-and-Suspenders)
-
-Every call to `confirmReservation` checks `expiresAt < now` before proceeding. If expired, it releases the hold inline and returns a 410. This means even if the cron misses a window, stock is never permanently locked.
-
----
 
 ## API Reference
 
 | Method | Path | Description |
-|--------|------|-------------|
 | `GET` | `/api/products` | List products with available stock per warehouse. Supports `?search=` and `?warehouseId=`. |
 | `GET` | `/api/warehouses` | List all warehouses. |
 | `POST` | `/api/reservations` | Reserve units. Returns 409 if insufficient stock. |
@@ -170,12 +146,8 @@ src/
 prisma/
 ├── schema.prisma
 └── seed.ts
-vercel.json                     # Cron job config
-```
 
----
 
-## Trade-offs & What I'd Do With More Time
 
 ### Trade-offs Made
 

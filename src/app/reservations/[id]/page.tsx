@@ -19,7 +19,14 @@ export default async function ReservationPage({ params }: Props) {
 
   let reservation;
   try {
-    reservation = await getReservationById(id);
+    const raw = await getReservationById(id);
+    
+    reservation = {
+      ...raw,
+      expiresAt: new Date(raw.expiresAt).toISOString(),
+      createdAt: new Date(raw.createdAt).toISOString(),
+      updatedAt: new Date(raw.updatedAt).toISOString(),
+    };
   } catch {
     notFound();
   }

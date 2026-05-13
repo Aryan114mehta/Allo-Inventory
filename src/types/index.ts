@@ -2,7 +2,8 @@ import type { Product, Warehouse, Inventory, Reservation, ReservationStatus, Pri
 
 export type { ReservationStatus };
 
-export interface ProductWithStock extends Product {
+export interface ProductWithStock extends Omit<Product, "price"> {
+  price: string;
   inventory: (Inventory & { warehouse: Warehouse })[];
 }
 
@@ -10,8 +11,11 @@ export interface WarehouseWithAvailability extends Warehouse {
   inventory: Inventory[];
 }
 
-export interface ReservationWithDetails extends Reservation {
-  product: Product;
+export interface ReservationWithDetails extends Omit<Reservation, "expiresAt" | "createdAt" | "updatedAt"> {
+  expiresAt: string | Date;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  product: Omit<Product, "price"> & { price: string };
   warehouse: Warehouse;
 }
 
